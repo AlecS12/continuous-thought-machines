@@ -22,6 +22,7 @@ from data.custom_datasets import MazeImageFolder
 
 # Model Imports
 from models.ctm import ContinuousThoughtMachine
+from tasks.mazes.spatial_config import add_spatial_arguments, spatial_model_kwargs
 from models.lstm import LSTMBaseline
 from models.ff import FFBaseline
 
@@ -60,6 +61,7 @@ warnings.filterwarnings(
 
 def parse_args():
     parser = argparse.ArgumentParser()
+    add_spatial_arguments(parser)
 
     # Model Selection
     parser.add_argument('--model', type=str, required=True, choices=['ctm', 'lstm', 'ff'], help='Model type to train.')
@@ -226,6 +228,7 @@ if __name__=='__main__':
             dropout_nlm=args.dropout_nlm,
             neuron_select_type=args.neuron_select_type,
             n_random_pairing_self=args.n_random_pairing_self,
+            **spatial_model_kwargs(args),
         ).to(device)
     elif args.model == 'lstm':
         model_base = LSTMBaseline(

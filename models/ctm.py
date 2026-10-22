@@ -6,6 +6,7 @@ import math
 from models.modules import ParityBackbone, SynapseUNET, Squeeze, SuperLinear, LearnableFourierPositionalEncoding, MultiLearnableFourierPositionalEncoding, CustomRotationalEmbedding, CustomRotationalEmbedding1D, ShallowWide
 from models.resnet import prepare_resnet_backbone
 from models.utils import compute_normalized_entropy
+from models.spatial_synapses import SpatialSynapses
 
 from models.constants import (
     VALID_NEURON_SELECT_TYPES,
@@ -75,6 +76,10 @@ class ContinuousThoughtMachine(nn.Module):
                         NOTE: when using random-pairing, i-to-i (self) synchronisation is rare, meaning that 'recovering a
                         snapshot representation' (see paper) is difficult. This alleviates that. 
                         NOTE: works fine when set to 0.
+        synapse_type (str): 'dense' (unchanged baseline), 'spatial', or 'wave'.
+        spatial_config (SpatialSynapseConfig or dict): Neuronal grid and propagation
+                        settings, required for spatial/wave. synapse_depth applies
+                        only to dense synapses. See docs/spatial_synapses.md.
     """                               
 
     def __init__(self,
@@ -97,6 +102,8 @@ class ContinuousThoughtMachine(nn.Module):
                  dropout_nlm=None,
                  neuron_select_type='random-pairing',  
                  n_random_pairing_self=0,
+                 synapse_type='dense',
+                 spatial_config=None,
                  ):
         super(ContinuousThoughtMachine, self).__init__()
 
@@ -114,6 +121,12 @@ class ContinuousThoughtMachine(nn.Module):
         self.neuron_select_type = neuron_select_type
         self.memory_length = memory_length
         dropout_nlm = dropout if dropout_nlm is None else dropout_nlm
+        if synapse_type not in ('dense', 'spatial', 'wave'):
+            raise ValueError(f"Invalid synapse_type: {synapse_type}")
+        if synapse_type == 'dense' and spatial_config is not None:
+            raise ValueError("spatial_config is only used by spatial/wave synapses")
+        self.synapse_type = synapse_type
+        self.spatial_config = spatial_config
 
         # --- Assertions ---
         self.verify_args()
@@ -128,7 +141,12 @@ class ContinuousThoughtMachine(nn.Module):
         self.attention = nn.MultiheadAttention(self.d_input, heads, dropout, batch_first=True) if heads else None
         
         # --- Core CTM Modules ---
-        self.synapses = self.get_synapses(synapse_depth, d_model, dropout)
+        if synapse_type == 'dense':
+            # Preserve the legacy initialization order, keys and subclass hooks.
+            self.synapses = self.get_synapses(synapse_depth, d_model, dropout)
+        else:
+            self.synapses = SpatialSynapses(d_model, d_input, spatial_config,
+                                           wave=synapse_type == 'wave', dropout=dropout)
         self.trace_processor = self.get_neuron_level_models(deep_nlms, do_layernorm_nlm, memory_length, memory_hidden_dims, d_model, dropout_nlm)
 
         #  --- Start States ---
@@ -493,6 +511,7 @@ class ContinuousThoughtMachine(nn.Module):
         # --- Initialise Recurrent State ---
         state_trace = self.start_trace.unsqueeze(0).expand(B, -1, -1) # Shape: (B, H, T)
         activated_state = self.start_activated_state.unsqueeze(0).expand(B, -1) # Shape: (B, H)
+        wave_state = None  # Local to this forward call, differentiable across ticks.
 
         # --- Prepare Storage for Outputs per Iteration ---
         predictions = torch.empty(B, self.out_dims, self.iterations, device=device, dtype=torch.float32)
@@ -521,7 +540,10 @@ class ContinuousThoughtMachine(nn.Module):
             pre_synapse_input = torch.concatenate((attn_out, activated_state), dim=-1)
 
             # --- Apply Synapses ---
-            state = self.synapses(pre_synapse_input)
+            if self.synapse_type == 'dense':
+                state = self.synapses(pre_synapse_input)
+            else:
+                state, wave_state = self.synapses(pre_synapse_input, wave_state)
             # The 'state_trace' is the history of incoming pre-activations
             state_trace = torch.cat((state_trace[:, :, 1:], state.unsqueeze(-1)), dim=-1)
 

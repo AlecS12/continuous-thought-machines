@@ -2,11 +2,8 @@ import pytest
 import torch
 from models.ctm import ContinuousThoughtMachine
 from models.ctm_qamnist import ContinuousThoughtMachineQAMNIST
-from utils.samplers import QAMNISTSampler
-from tasks.qamnist.utils import get_dataset
 from tests.test_data import *
 from utils.housekeeping import set_seed
-from tasks.rl.train import Agent
 from types import SimpleNamespace
 
 # --- Housekeeping ---
@@ -89,6 +86,8 @@ def golden_test_model_qamnist(golden_test_params_qamnist, device):
 
 @pytest.fixture
 def golden_test_input_qamnist(device):
+    from utils.samplers import QAMNISTSampler
+    from tasks.qamnist.utils import get_dataset
     q_num_images = 2
     q_num_images_delta = 0
     q_num_repeats_per_input = 1
@@ -159,6 +158,7 @@ def golden_test_params_rl(base_params):
 
 @pytest.fixture
 def golden_test_model_rl(golden_test_params_rl, device):
+    from tasks.rl.train import Agent
     args = SimpleNamespace(
         env_id="CartPole-v1",
         model_type="ctm",
@@ -323,6 +323,8 @@ def qamnist_params():
 
 @pytest.fixture
 def qamnist_input(device):
+    from utils.samplers import QAMNISTSampler
+    from tasks.qamnist.utils import get_dataset
     q_num_images = 3
     q_num_images_delta = 2
     q_num_repeats_per_input = 10

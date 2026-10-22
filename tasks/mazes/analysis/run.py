@@ -14,6 +14,7 @@ import imageio # Used for saving GIFs in viz
 # Local imports
 from data.custom_datasets import MazeImageFolder
 from models.ctm import ContinuousThoughtMachine
+from tasks.mazes.spatial_config import spatial_model_kwargs, maze_checkpoint_weights
 from tasks.mazes.plotting import draw_path # 
 from tasks.image_classification.plotting import save_frames_to_mp4
 
@@ -131,9 +132,10 @@ def _load_ctm_model(checkpoint_path, device):
         dropout=0, # Explicitly setting dropout to 0 as in original
         neuron_select_type=model_args.neuron_select_type,
         n_random_pairing_self=model_args.n_random_pairing_self,
+        **spatial_model_kwargs(model_args),
     ).to(device)
 
-    load_result = model.load_state_dict(checkpoint['state_dict'], strict=False)
+    load_result = model.load_state_dict(maze_checkpoint_weights(checkpoint), strict=False)
     print(f"Loaded state_dict. Missing keys: {load_result.missing_keys}, Unexpected keys: {load_result.unexpected_keys}")
     model.eval()
     return model
