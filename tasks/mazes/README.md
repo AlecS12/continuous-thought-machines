@@ -2,6 +2,15 @@
 
 This folder contains code for training and analysing 2D maze solving experiments
 
+## Optional spatial CTM synapses
+
+See [the spatial-synapse guide](../../docs/spatial_synapses.md) for a local neuronal
+sheet, explicit damped-wave propagation, the unchanged dense baseline, and a
+download-free three-variant maze pilot with propagation, generalization and
+synchronization diagnostics. Both maze training entry points accept
+`--synapse_type {dense,spatial,wave}`; spatial modes require `--spatial_grid H W`
+with `H*W == d_model`. The default remains `dense`.
+
 
 ## Training
 To run the maze training that we used for the paper, run the following command from the parent directory:

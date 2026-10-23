@@ -1,0 +1,2 @@
+# Generated experiment evidence is retained for reproduction; focus code review on the runner, tests and report.
+docs/experiments/spatial-overfit-20261023/** linguist-generated=true

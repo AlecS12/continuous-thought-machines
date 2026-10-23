@@ -14,6 +14,7 @@ from tqdm.auto import tqdm
 
 from data.custom_datasets import MazeImageFolder
 from models.ctm import ContinuousThoughtMachine
+from tasks.mazes.spatial_config import add_spatial_arguments, spatial_model_kwargs
 from models.lstm import LSTMBaseline
 from models.ff import FFBaseline
 from tasks.mazes.plotting import make_maze_gif
@@ -70,6 +71,7 @@ def parse_args():
                                                                        'custom-rotational'])
 
     # CTM specific
+    add_spatial_arguments(parser)
     parser.add_argument('--synapse_depth', type=int, default=8, help='Depth of U-NET model for synapse. 1=linear, no unet (CTM only).') # Default changed
     parser.add_argument('--n_synch_out', type=int, default=32, help='Number of neurons to use for output synch (CTM only).') # Default changed
     parser.add_argument('--n_synch_action', type=int, default=32, help='Number of neurons to use for observation/action synch (CTM only).') # Default changed
@@ -184,6 +186,7 @@ if __name__=='__main__':
             dropout_nlm=args.dropout_nlm,
             neuron_select_type=args.neuron_select_type,
             n_random_pairing_self=args.n_random_pairing_self,
+            **spatial_model_kwargs(args),
         ).to(device)
     elif args.model == 'lstm':
          model = LSTMBaseline(

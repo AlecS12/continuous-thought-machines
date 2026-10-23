@@ -1,0 +1,40 @@
+{
+  "checks": [
+    {
+      "check": "four-maze seed-0 repeat",
+      "variant": "dense",
+      "all_non_timing_run_fields_identical": true,
+      "model_tensors_bitwise_identical": true,
+      "model_tensor_bytes_sha256": "20f06383c955c3768d32bf538972a85777195c26d66a40d55724f374ebe8e58f"
+    },
+    {
+      "check": "four-maze seed-0 repeat",
+      "variant": "spatial",
+      "all_non_timing_run_fields_identical": true,
+      "model_tensors_bitwise_identical": true,
+      "model_tensor_bytes_sha256": "21ebefad177000496a136809666a0429b758799b0936e113f809430e82758327"
+    },
+    {
+      "check": "four-maze seed-0 repeat",
+      "variant": "wave",
+      "all_non_timing_run_fields_identical": true,
+      "model_tensors_bitwise_identical": true,
+      "model_tensor_bytes_sha256": "f246627649e8c9062ddbdd130f28a2379b411d403ad52b15aae905ac06eca681"
+    },
+    {
+      "check": "eight-maze unaffected dense/spatial",
+      "variant": "dense",
+      "all_non_timing_run_fields_identical": true,
+      "model_tensors_bitwise_identical": true,
+      "model_tensor_bytes_sha256": "335adf5a87e1185863870603dc5f71f2e58a32554219b082534f75691cfdc5c9"
+    },
+    {
+      "check": "eight-maze unaffected dense/spatial",
+      "variant": "spatial",
+      "all_non_timing_run_fields_identical": true,
+      "model_tensors_bitwise_identical": true,
+      "model_tensor_bytes_sha256": "aa42ee93b861d1360181dcc34f6e1371e6fef6c7b92a5f0a6ef6e6d8aa216322"
+    }
+  ],
+  "all_source_hashes_match": true
+}

@@ -1,0 +1,43 @@
+..E..................................................................... [ 39%]
+........................................................................ [ 79%]
+.....................................                                    [100%]
+==================================== ERRORS ====================================
+_______________________ ERROR at setup of test_golden_rl _______________________
+
+golden_test_params_rl = {'iterations': 10, 'd_model': 32, 'd_input': 4, 'n_synch_out': 3, ...}
+device = device(type='cpu')
+
+    @pytest.fixture
+    def golden_test_model_rl(golden_test_params_rl, device):
+>       from tasks.rl.train import Agent
+
+tests/conftest.py:161:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tasks/rl/train.py:27: in <module>
+    from tasks.image_classification.plotting import plot_neural_dynamics
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+
+    import numpy as np
+    import cv2
+    import torch
+    import os
+    import imageio
+    import matplotlib.pyplot as plt
+    import matplotlib as mpl
+    from matplotlib import patheffects
+    mpl.use('Agg')
+    import seaborn as sns
+    import numpy as np
+    from tqdm.auto import tqdm
+    sns.set_style('darkgrid')
+
+    from tqdm.auto import tqdm
+    from scipy import ndimage
+>   import umap
+E   ModuleNotFoundError: No module named 'umap'
+
+tasks/image_classification/plotting.py:18: ModuleNotFoundError
+=========================== short test summary info ============================
+ERROR tests/tests.py::test_golden_rl - ModuleNotFoundError: No module named '...
+180 passed, 1 error in 59.23s
