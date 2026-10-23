@@ -98,6 +98,7 @@ python -m tasks.mazes.spatial_experiment \
   --batch_size 8 --iterations 8 --output logs/spatial-smoke
 
 # Prespecified pilot: all three modes, three paired seeds, fixed data.
+# Run only after the overfitting prerequisites below are met.
 python -m tasks.mazes.spatial_experiment \
   --steps 1000 --seeds 0 1 2 --train_examples 512 --test_examples 128 \
   --cells 4 --horizon 64 --iterations 16 --batch_size 32 \
@@ -114,6 +115,36 @@ available; for CUDA deterministic matrix multiplication, set
 `CUBLAS_WORKSPACE_CONFIG=:4096:8` before starting. CPU is the default. The
 runner always compares dense/spatial/wave. Grid and wave flags configure the
 spatial branches.
+
+### Establish training-set learning before scaling
+
+```bash
+# Four fixed layouts, full-batch AdamW, 500 updates, measurements every 25.
+# All explicit flags override the preset. Use the same data seed for pairing.
+python -m tasks.mazes.spatial_experiment --overfit \
+  --seeds 0 1 2 --controls none disconnected --output logs/spatial-overfit
+
+# A harder small set: eight 4x4-room mazes, including longer routes.
+python -m tasks.mazes.spatial_experiment --overfit \
+  --train_examples 8 --cells 4 --horizon 64 --steps 1000 --eval_every 50 \
+  --seeds 0 --output logs/spatial-overfit-eight
+
+# Optional plots of recorded data; requires matplotlib, no training.
+python -m tasks.mazes.plot_spatial_learning logs/spatial-overfit/results.json
+```
+
+Every run now evaluates the **entire training set**, in order with dropout
+disabled, at update zero, every `--eval_every` updates, and the final update.
+The same evaluations are made on the fixed ID set. Final reports also retain
+larger and rotated evaluations. CE is token-weighted, includes STOP and ignores
+padding. Training-batch loss is measured before the update; curve CE is measured
+after the update. Both are recorded and must not be conflated.
+
+The `overfit_gate` requires CE <= 0.1, 100% valid and exact canonical routes,
+and no collisions at the final two positive-update measurements. Passing this
+gate on a tiny set is a necessary capacity/optimization check, not a claim of
+algorithm recovery or generalization. See [the executed diagnostic report](spatial_overfit.md)
+for results, mechanism controls and the stronger prerequisites for scaling.
 
 The task is open-loop prediction of a route as up/right/down/left/STOP. DFS
 mazes have random extra corridors (probability 0.15 per potential corridor)
@@ -146,9 +177,13 @@ Artifacts per run:
 
 - `results.json`: full configuration, software versions, source revision and
   dirty-state indicator, source-file hashes, split hashes, losses, timings, parameter count,
-  CUDA peak memory (if applicable), and all per-seed metrics.
+  CUDA peak memory (if applicable), full training/ID learning curves, per-example
+  final metrics, a parameter audit, inference interventions and all per-seed metrics.
 - `datasets.npz`: exact train/evaluation arrays, to preserve the generated data.
-- `<variant>-seed<seed>.pt`: weights, constructor kwargs, optimizer state, steps.
+- `<tag>-curve.csv`: training/ID CE, route success, exact sequence, collisions
+  and token accuracy at each measurement. Written during training.
+- `<tag>.pt`: weights, constructor kwargs, optimizer state, steps and control name.
+  Tags are `<variant>-seed<seed>` with `-<control>` appended for trained controls.
 - `<variant>-seed<seed>-<split>.npz`: predicted routes at every tick, targets,
   shortest lengths and post-activation traces for the first evaluation batch.
 
@@ -158,6 +193,9 @@ Reload pilot weights with:
 checkpoint = torch.load(path, map_location="cpu", weights_only=True)
 model = ContinuousThoughtMachine(**checkpoint["model_kwargs"]).eval()
 model.load_state_dict(checkpoint["model_state_dict"], strict=True)
+from tasks.mazes.spatial_controls import mechanism_control
+with mechanism_control(model, checkpoint.get("control", "none")):
+    predictions = model(observations)[0]
 ```
 
 ## Diagnostics and interpretation

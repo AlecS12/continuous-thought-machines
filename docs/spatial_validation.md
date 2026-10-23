@@ -1,5 +1,13 @@
 # Validation record — 2026-10-22
 
+**2026-10-23 follow-up:** [Fixed-training-set diagnostics and executed results](spatial_overfit.md)
+now distinguish training fit from held-out performance. All three variants fit
+four mazes across three seeds; an eight-maze test, retrained mechanism controls,
+zero-speed training, reproducibility checks and 9 additional tests were executed.
+All 181 current tests passed across the full invocation and a dependency-resolved
+RL rerun. The 512-maze / 1,000-update / three-seed pilot remains unexecuted.
+The original record below is retained as the historical smoke-test result.
+
 Implementation base: `f659febd3019640366d1af47e836fae0d976311b`.
 CPU execution; Python 3.12, PyTorch 2.14.1+cu130, NumPy 2.3.5. CUDA was unavailable.
 

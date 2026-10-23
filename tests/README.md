@@ -28,3 +28,10 @@ OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 python -m pytest tests/test_spatial_synapses
 See [the experiment guide](../docs/spatial_synapses.md). Run the existing
 `tests/tests.py` explicitly as well: its filename is not discovered by pytest's
 default `test_*.py` pattern.
+
+The experiment tests also cover STOP/collision/alternate-route semantics,
+token-weighted CE with padding, repeatable whole-training-set evaluation,
+restoration of training mode and in-place-clamped decay parameters, intervention
+cleanup on exceptions, checkpoint reload with controls, and identical training
+weights/losses when evaluation cadence changes. Learning a dataset is checked
+by the separate overfit experiment, not asserted in a fragile training unit test.
